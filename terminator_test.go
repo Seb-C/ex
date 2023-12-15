@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDestructor(t *testing.T) {
+func TestTerminator(t *testing.T) {
 	t.Run("basic non-pointer", func(t *testing.T) {
 		t.Run("non-pointer", func(t *testing.T) {
-			obj := struct{ ex.Destructor }{}
+			obj := struct{ ex.Terminator }{}
 
 			counterA := 0
 			obj.Defer(func() {
@@ -28,7 +28,7 @@ func TestDestructor(t *testing.T) {
 			assert.Equal(t, 1, counterB)
 		})
 		t.Run("pointer", func(t *testing.T) {
-			obj := &struct{ ex.Destructor }{}
+			obj := &struct{ ex.Terminator }{}
 
 			counterA := 0
 			obj.Defer(func() {
@@ -50,10 +50,10 @@ func TestDestructor(t *testing.T) {
 	t.Run("embedded", func(t *testing.T) {
 		t.Run("non-pointer", func(t *testing.T) {
 			type typeA struct {
-				ex.Destructor
+				ex.Terminator
 			}
 			type typeB struct {
-				ex.Destructor
+				ex.Terminator
 				a typeA
 			}
 
@@ -79,10 +79,10 @@ func TestDestructor(t *testing.T) {
 		})
 		t.Run("pointer", func(t *testing.T) {
 			type typeA struct {
-				ex.Destructor
+				ex.Terminator
 			}
 			type typeB struct {
-				ex.Destructor
+				ex.Terminator
 				a *typeA
 			}
 
