@@ -1,4 +1,4 @@
-package _util
+package ex
 
 import (
 	"testing"

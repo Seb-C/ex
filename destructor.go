@@ -1,4 +1,4 @@
-package _util
+package ex
 
 type Destructor struct {
 	callbacks []func()
