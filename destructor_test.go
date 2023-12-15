@@ -1,15 +1,16 @@
-package ex
+package ex_test
 
 import (
 	"testing"
 
+	"github.com/Seb-C/ex"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDestructor(t *testing.T) {
 	t.Run("basic non-pointer", func(t *testing.T) {
 		t.Run("non-pointer", func(t *testing.T) {
-			obj := struct{ Destructor }{}
+			obj := struct{ ex.Destructor }{}
 
 			counterA := 0
 			obj.Defer(func() {
@@ -27,7 +28,7 @@ func TestDestructor(t *testing.T) {
 			assert.Equal(t, 1, counterB)
 		})
 		t.Run("pointer", func(t *testing.T) {
-			obj := &struct{ Destructor }{}
+			obj := &struct{ ex.Destructor }{}
 
 			counterA := 0
 			obj.Defer(func() {
@@ -49,10 +50,10 @@ func TestDestructor(t *testing.T) {
 	t.Run("embedded", func(t *testing.T) {
 		t.Run("non-pointer", func(t *testing.T) {
 			type typeA struct {
-				Destructor
+				ex.Destructor
 			}
 			type typeB struct {
-				Destructor
+				ex.Destructor
 				a typeA
 			}
 
@@ -78,10 +79,10 @@ func TestDestructor(t *testing.T) {
 		})
 		t.Run("pointer", func(t *testing.T) {
 			type typeA struct {
-				Destructor
+				ex.Destructor
 			}
 			type typeB struct {
-				Destructor
+				ex.Destructor
 				a *typeA
 			}
 
