@@ -1,4 +1,4 @@
-# ex.Terminator is a destructor for Go objects
+# ex.Terminator is a destructor helper for Go
 
 [![GoDoc](https://godoc.org/github.com/Seb-C/ex?status.svg)](https://pkg.go.dev/github.com/Seb-C/ex)
 
@@ -12,7 +12,7 @@ Additionally, `ex.Terminate` helps you to find leaks by reporting errors if an o
 
 ## Example
 
-https://go.dev/play/p/yQvnVDz04yE
+https://go.dev/play/p/wFxNeCnYPLd
 
 ```go
 type FileRepository struct {
@@ -20,10 +20,13 @@ type FileRepository struct {
 	file *os.File
 }
 
-func NewFileRepository() *FileRepository {
-	fileRepo := &FileRepository{}
+func NewFileRepository() (fileRepo *FileRepository, err error) {
+	fileRepo = &FileRepository{}
 
-	fileRepo.file, _ = os.Create("data.json")
+	fileRepo.file, err = os.Create("data.json")
+	if err != nil {
+		return nil, err
+	}
 	fileRepo.Defer(fileRepo.file.Close)
 
 	fileRepo.Defer(func() error {
@@ -31,7 +34,7 @@ func NewFileRepository() *FileRepository {
 		return nil
 	})
 
-	return fileRepo
+	return fileRepo, nil
 }
 
 type DBRepository struct {
@@ -39,10 +42,13 @@ type DBRepository struct {
 	db *sql.DB
 }
 
-func NewDBRepository() *DBRepository {
-	dbRepo := &DBRepository{}
+func NewDBRepository() (dbRepo *DBRepository, err error) {
+	dbRepo = &DBRepository{}
 
-	dbRepo.db, _ = sql.Open("sqlite3", ":memory:")
+	dbRepo.db, err = sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		return nil, err
+	}
 	dbRepo.Defer(dbRepo.db.Close)
 
 	dbRepo.Defer(func() error {
@@ -50,7 +56,7 @@ func NewDBRepository() *DBRepository {
 		return nil
 	})
 
-	return dbRepo
+	return dbRepo, nil
 }
 
 type Service struct {
@@ -59,25 +65,35 @@ type Service struct {
 	dbRepo   *DBRepository
 }
 
-func NewService() *Service {
-	service := &Service{}
+func NewService() (service *Service, err error) {
+	service = &Service{}
 
-	service.fileRepo = NewFileRepository()
+	service.fileRepo, err = NewFileRepository()
+	if err != nil {
+		return nil, err
+	}
 	service.Defer(service.fileRepo.Close)
 
-	service.dbRepo = NewDBRepository()
+	service.dbRepo, err = NewDBRepository()
+	if err != nil {
+		return nil, err
+	}
 	service.Defer(service.dbRepo.Close)
 
-	return service
+	return service, nil
 }
 
 func main() {
-	service := NewService()
+	service, err := NewService()
+	if err != nil {
+		panic(err)
+	}
 	defer service.Close()
-}
 
-// closing DBRepository
-// closing FileRepository
+	// Output:
+	// "closing DBRepository"
+	// "closing FileRepository"
+}
 ```
 
 ## In which order are resources closed?
