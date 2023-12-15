@@ -11,6 +11,12 @@ var onGarbageCollectUnclosed = func(err error) {
 	fmt.Fprintln(os.Stderr, err)
 }
 
+// OnGarbageCollectUnclosed changes the handler that is called whenever a
+// Terminator is being garbage collected without the Close method having
+// been called before.
+//
+// The default behaviour is to write an error message to stderr.
+// You can use this for example to panic or pass it to your log system.
 func OnGarbageCollectUnclosed(handler func(error)) {
 	if handler == nil {
 		panic("Cannot set a nil garbage collect unclosed handler")
@@ -49,12 +55,18 @@ func (deferred *deferred) finalizer() {
 	))
 }
 
+// Terminator, once embedded in your struct, provides two main functions:
+//
+// - A function to defer closing resources whenever your struct gets closed
+// - A close function to be called from the outside
 type Terminator struct {
 	defers []*deferred // Needs to be a pointer for SetFinalizer
 }
 
-// The terminator is aimed to be included without a pointer,
-// however we need one only when deferring stuff
+// Defer mimicks the defer keyword, but throughout the life cycle of your struct.
+//
+// Everything deferred by it will be automatically closed when the Close
+// method will be called from the outside.
 func (terminator *Terminator) Defer(callback func() error) {
 	if callback == nil {
 		panic("A deferred close function cannot be nil")
@@ -76,6 +88,12 @@ func (terminator *Terminator) Defer(callback func() error) {
 	runtime.SetFinalizer(deferredClose, (*deferred).finalizer)
 }
 
+// Close will execute all the deferred functions that you previously passed to Defer.
+// It uses the same order than the defer keyword: from the last Defer to the first.
+//
+// All of the deferred functions are always executed, even if ont of them fails.
+// If many of them fails, all the related errors will be returned along with a
+// trace and using errors.Join.
 func (terminator *Terminator) Close() error {
 	var errs []error
 
