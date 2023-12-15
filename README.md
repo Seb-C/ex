@@ -1,4 +1,4 @@
-# ex.Terminator - destructor for your Go objects
+# ex.Terminator is a destructor for Go objects
 
 [![GoDoc](https://godoc.org/github.com/Seb-C/ex?status.svg)](https://pkg.go.dev/github.com/Seb-C/ex)
 
@@ -8,7 +8,7 @@ It provides two methods:
 - `object.Defer` to defer closing the resources created by the current object (for example `foo.Defer(foo.db.Close)`).
 - `object.Close`, once called, executes all of the deferred operations and returns errors if necessary.
 
-Additionally, ex.Terminate helps you to find leaks. Errors will be displayed if a garbage-collected object was not properly closed.
+Additionally, `ex.Terminate` helps you to find leaks by reporting errors if an object gets garbage-collected without having been closed.
 
 ## Example
 
@@ -75,16 +75,19 @@ func main() {
 	service := NewService()
 	defer service.Close()
 }
+
+// closing DBRepository
+// closing FileRepository
 ```
 
 ## In which order are resources closed?
 
-`ex.Terminator` follows the same convention than the `defer` keyword. That means that the last deferred operation will be executed first:
+`ex.Terminator` follows the same convention than the `defer` keyword: the last deferred operation is executed first:
 
-```
-	fileRepo.Defer(func() error { fmt.Println("closing A"); return nil })
-	fileRepo.Defer(func() error { fmt.Println("closing B"); return nil })
-	fileRepo.Defer(func() error { fmt.Println("closing C"); return nil })
+```go
+fileRepo.Defer(func() error { fmt.Println("closing A"); return nil })
+fileRepo.Defer(func() error { fmt.Println("closing B"); return nil })
+fileRepo.Defer(func() error { fmt.Println("closing C"); return nil })
 ```
 
 Result:
@@ -95,29 +98,31 @@ closing B
 closing A
 ```
 
-## What if a deferred function returns an error?
+## What happens if a deferred Close returns an error?
 
-Even in case of error, all of the deferred functions are always executed. The errors are all returned using `errors.Join`.
+Even in case of error, all of the deferred functions are always executed. The errors are then returned using `errors.Join`.
 
 ## Do I still need to call `.Close()` manually?
 
-Yes. ex.Terminate is design to work like a tree.
+No, but it has to be explicitly deferred instead.
 
-The easiest way to use it is to follow this rule: the part of the code that creates a resource must always defer closing it.
+`ex.Terminate` is designed to keep the concerns strictly separated.
 
-In short, if `NewFoo` calls `NewBar`, it should also defer `bar.Close`.
+The best way to use it is to follow this rule: the code which creates a resource is always responsible for closing it.
+
+In short, if `main` calls `NewFoo` which calls `NewBar`, then `main` should defer `foo.Close`, and `foo` should defer `bar.Close`.
 
 This way, you end-up with a hierarchy of `Close` calls: `main` calls `foo.Close`, `foo.Close` calls `bar.Close` which in turn might close other resources it's responsible for.
 
 ## Can I use this struct as a property rather than embedding it?
 
-Yes, it also works, but a little more verbose because of the way Go works.
+While I recommend embedding it because I think that it is less error-prone and requires less boilerplate, it is very much possible to encapsulate it instead.
 
-The benefit of doing this is that the `Defer` method will be encapsulated.
+However, it is a trade off because of constraints inherent to the Go language:
+- The benefit is that the `Defer` method will be encapsulated.
+- The drawback is that you will manually have to create a `Close` method to close the terminator.
 
-The drawback is that you will manually have to create a `Close` method.
-
-```
+```go
 type Foo struct {
 	terminator ex.Terminator
 	file       *os.File
