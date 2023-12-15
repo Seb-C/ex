@@ -13,17 +13,20 @@ func TestTerminator(t *testing.T) {
 			obj := struct{ ex.Terminator }{}
 
 			counterA := 0
-			obj.Defer(func() {
+			obj.Defer(func() error {
 				counterA++
+				return nil
 			})
 
 			counterB := 0
-			obj.Defer(func() {
+			obj.Defer(func() error {
 				counterB++
+				return nil
 			})
 
-			obj.Close()
+			err := obj.Close()
 
+			assert.Nil(t, err)
 			assert.Equal(t, 1, counterA)
 			assert.Equal(t, 1, counterB)
 		})
@@ -31,17 +34,20 @@ func TestTerminator(t *testing.T) {
 			obj := &struct{ ex.Terminator }{}
 
 			counterA := 0
-			obj.Defer(func() {
+			obj.Defer(func() error {
 				counterA++
+				return nil
 			})
 
 			counterB := 0
-			obj.Defer(func() {
+			obj.Defer(func() error {
 				counterB++
+				return nil
 			})
 
-			obj.Close()
+			err := obj.Close()
 
+			assert.Nil(t, err)
 			assert.Equal(t, 1, counterA)
 			assert.Equal(t, 1, counterB)
 		})
@@ -63,17 +69,20 @@ func TestTerminator(t *testing.T) {
 			objB.Defer(objA.Close)
 
 			counterA := 0
-			objA.Defer(func() {
+			objA.Defer(func() error {
 				counterA++
+				return nil
 			})
 
 			counterB := 0
-			objB.Defer(func() {
+			objB.Defer(func() error {
 				counterB++
+				return nil
 			})
 
-			objB.Close()
+			err := objB.Close()
 
+			assert.Nil(t, err)
 			assert.Equal(t, 1, counterA)
 			assert.Equal(t, 1, counterB)
 		})
@@ -92,17 +101,20 @@ func TestTerminator(t *testing.T) {
 			objB.Defer(objA.Close)
 
 			counterA := 0
-			objA.Defer(func() {
+			objA.Defer(func() error {
 				counterA++
+				return nil
 			})
 
 			counterB := 0
-			objB.Defer(func() {
+			objB.Defer(func() error {
 				counterB++
+				return nil
 			})
 
-			objB.Close()
+			err := objB.Close()
 
+			assert.Nil(t, err)
 			assert.Equal(t, 1, counterA)
 			assert.Equal(t, 1, counterB)
 		})
