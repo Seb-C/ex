@@ -3,6 +3,7 @@ package ex_test
 import (
 	"errors"
 	"regexp"
+	"runtime"
 	"testing"
 
 	"github.com/Seb-C/ex"
@@ -186,6 +187,26 @@ func TestTerminator(t *testing.T) {
 			assert.NotNil(t, err)
 			assert.Regexp(t, regexp.MustCompile(`deferred close initiated by .*terminator_test.go:\d+, caused by deferred close initiated by .*terminator_test.go:\d+, caused by deferred close initiated by .*terminator_test.go:\d+, caused by error Y2`), err.Error())
 			assert.Regexp(t, regexp.MustCompile(`deferred close initiated by /.*terminator_test.go:\d+, caused by deferred close initiated by .*/terminator_test.go:\d+, caused by deferred close initiated by .*/terminator_test.go:\d+, caused by error Y1`), err.Error())
+		})
+		t.Run("missing Close", func(t *testing.T) {
+			type typeA struct {
+				ex.Terminator
+			}
+
+			objA1 := typeA{}
+			objA1.Defer(func() error {
+				return nil
+			})
+
+			unclosedErrorCount := 0
+			ex.OnGarbageCollectUnclosed(func(err error) {
+				unclosedErrorCount++
+				t.Log(err)
+			})
+
+			objA1 = typeA{} // Replacing the value so that it gets garbage collected
+			runtime.GC()
+			assert.Equal(t, 1, unclosedErrorCount)
 		})
 	})
 }
