@@ -184,8 +184,8 @@ func TestTerminator(t *testing.T) {
 			err := objC.Close()
 
 			assert.NotNil(t, err)
-			assert.Regexp(t, regexp.MustCompile("error in deferred close initiated by .*terminator_test.go:\\d+, caused by error in deferred close initiated by .*terminator_test.go:\\d+, caused by error in deferred close initiated by .*terminator_test.go:\\d+, caused by error Y2"), err.Error())
-			assert.Regexp(t, regexp.MustCompile("error in deferred close initiated by /.*terminator_test.go:\\d+, caused by error in deferred close initiated by .*/terminator_test.go:\\d+, caused by error in deferred close initiated by .*/terminator_test.go:\\d+, caused by error Y1"), err.Error())
+			assert.Regexp(t, regexp.MustCompile(`deferred close initiated by .*terminator_test.go:\d+, caused by deferred close initiated by .*terminator_test.go:\d+, caused by deferred close initiated by .*terminator_test.go:\d+, caused by error Y2`), err.Error())
+			assert.Regexp(t, regexp.MustCompile(`deferred close initiated by /.*terminator_test.go:\d+, caused by deferred close initiated by .*/terminator_test.go:\d+, caused by deferred close initiated by .*/terminator_test.go:\d+, caused by error Y1`), err.Error())
 		})
 	})
 }

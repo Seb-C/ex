@@ -38,10 +38,10 @@ func (terminator *Terminator) Close() error {
 	for callbackIndex := len(terminator.defers) - 1; callbackIndex >= 0; callbackIndex-- {
 		deferred := terminator.defers[callbackIndex]
 		if err := deferred.callback(); err != nil {
-			var message = "error in deferred close"
+			var message = "deferred close"
 			if deferred.fromFile != "" {
 				message = fmt.Sprintf(
-					"error in deferred close initiated by %s:%d",
+					"deferred close initiated by %s:%d",
 					deferred.fromFile,
 					deferred.fromLine,
 				)
