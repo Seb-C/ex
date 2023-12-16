@@ -8,7 +8,12 @@ It provides two methods:
 - `object.Defer` to defer closing the resources created by the current object (for example `foo.Defer(foo.db.Close)`).
 - `object.Close`, once called, executes all of the deferred operations and returns errors if necessary.
 
-Additionally, `ex.Terminate` helps you to find leaks by reporting errors if an object gets garbage-collected without having been closed.
+Additionally, `ex.Terminate` helps you find leaks by reporting errors if an object gets garbage-collected without having been closed.
+
+`ex.Terminator` has several benefits over maintaining your own `Close` methods:
+- Similarly to the `defer` keyword, it is easier to keep track of what is being closed or not, because both the open and close operations always goes together. Meanwhile, it is very easy to forget about it when writing or maintaining a `Close` method.
+- Errors in manually maintained `Close` methods are often ignored, and handling it explicitly makes the readability worse. `ex.Terminator` takes care of that for you, and includes helpful error messages.
+- `ex.Terminator` takes care of closing the resources in the right order, which is easy to get wrong when manually done.
 
 ## Example
 
@@ -95,6 +100,17 @@ func main() {
 	// "closing FileRepository"
 }
 ```
+
+## Is this based on `runtime.SetFinalizer`?
+
+No. Resources are closed synchronously, meaning that the `Close` methods still must be called, either via `defer`, `.Defer` or manually.
+
+However, `ex.Terminator` uses `runtime.SetFinalizer` to help the developers find mistakes: an error message is printed in the console whenever a non-Closed object gets garbage-collected.
+But this only used for this purpose. Closing the objects is never done in `SetFinalizer`.
+
+## Can I use it outside the constructor?
+
+Yes! Although I only provided examples using the constructor (because it is the most common use case), you can use `.Defer` in any method and any time of the life-cycle of your objects.
 
 ## In which order are resources closed?
 
