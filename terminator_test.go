@@ -2,6 +2,8 @@ package ex_test
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"regexp"
 	"runtime"
 	"testing"
@@ -207,6 +209,31 @@ func TestTerminator(t *testing.T) {
 			objA1 = typeA{} // Replacing the value so that it gets garbage collected
 			runtime.GC()
 			assert.Equal(t, 1, unclosedErrorCount)
+		})
+		t.Run("does not prevent GC", func(t *testing.T) {
+			type typeA struct {
+				ex.Terminator
+			}
+
+			objA1 := &typeA{}
+			{
+				objA1Ref := objA1
+				objA1.Defer(func() error {
+					// Force keeping a reference to itself inside a defer function
+					fmt.Fprint(io.Discard, objA1Ref)
+					return nil
+				})
+			}
+
+			garbageCollectedCount := 0
+			ex.OnGarbageCollectUnclosed(func(err error) {
+				garbageCollectedCount++
+				t.Log(err)
+			})
+
+			objA1 = nil // Removing the reference so that it gets garbage collected
+			runtime.GC()
+			assert.Equal(t, 1, garbageCollectedCount)
 		})
 	})
 }
