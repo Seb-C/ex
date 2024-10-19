@@ -8,7 +8,7 @@ It provides two methods:
 - `object.Defer` to defer closing the resources created by the current object (for example `foo.Defer(foo.db.Close)`).
 - `object.Close`, once called, executes all of the deferred operations and returns errors if necessary.
 
-Additionally, `ex.Terminate` helps you find leaks by reporting errors if an object gets garbage-collected without having been closed.
+Additionally, `ex.Terminator` helps you find leaks by reporting errors if an object gets garbage-collected without having been closed.
 
 `ex.Terminator` has several benefits over maintaining your own `Close` methods:
 - Similarly to the `defer` keyword, it is easier to keep track of what is being closed or not, because both the open and close operations always goes together. Meanwhile, it is very easy to forget about it when writing or maintaining a `Close` method.
@@ -138,7 +138,7 @@ Even in case of error, all of the deferred functions are always executed. The er
 
 No, but it has to be explicitly deferred instead.
 
-`ex.Terminate` is designed to keep the concerns strictly separated.
+`ex.Terminator` is designed to keep the concerns strictly separated.
 
 The best way to use it is to follow this rule: the code which creates a resource is always responsible for closing it.
 
