@@ -24,15 +24,15 @@ func OnGarbageCollectUnclosed(handler func(error)) {
 	onGarbageCollectUnclosed = handler
 }
 
-type gcUnclosedDetector struct{
+type gcUnclosedDetector struct {
 	description string
-	isClosed bool
+	isClosed    bool
 }
 
 func newGCUnclosedDetector(description string) *gcUnclosedDetector {
 	detector := &gcUnclosedDetector{
 		description: description,
-		isClosed: false,
+		isClosed:    false,
 	}
 
 	runtime.SetFinalizer(detector, (*gcUnclosedDetector).finalizer)

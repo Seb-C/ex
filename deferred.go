@@ -5,9 +5,9 @@ import (
 )
 
 type deferred struct {
-	callback func() error
-	fromFile string
-	fromLine int
+	callback           func() error
+	fromFile           string
+	fromLine           int
 	gcUnclosedDetector *gcUnclosedDetector
 }
 
